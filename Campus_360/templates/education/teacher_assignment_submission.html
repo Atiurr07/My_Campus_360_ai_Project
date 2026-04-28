@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h3>Submissions for: {{ assignment.title }}</h3>
+    <p>{{ assignment.description }}</p>
+    <p>Deadline: {% if assignment.deadline %}{{ assignment.deadline }}{% else %}No deadline{% endif %}</p>
+    <table class="table table-bordered table-hover shadow-sm">
+        <thead class="table-dark">
+            <tr>
+                <th>Student</th>
+                <th>File</th>
+                <th>Submitted At</th>
+                <th>Status</th>
+                <th>Grade</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sub in submissions %}
+            <tr>
+                <td>{{ sub.student.get_full_name|default:sub.student.username }}</td>
+                {% if sub.submitted_file %}
+                    <td><a href="{{ sub.submitted_file.url }}" target="_blank">Download</a></td>
+                {% else %}
+                    <span class="text-muted">No File</span>
+                {% endif %}
+                <td>{{ sub.submitted_at|date:"Y-m-d H:i" }}</td>
+                <td>{{ sub.status }}</td>
+                <td>{{ sub.grade|default:"-" }}</td>
+                <td><a class="btn btn-sm btn-primary"
+                        href="{% url 'education:teacher_grade_submission' sub.id %}">Grade</a></td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center text-muted">No submissions yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

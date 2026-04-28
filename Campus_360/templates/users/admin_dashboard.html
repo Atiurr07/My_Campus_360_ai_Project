@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<div class="text-center mb-4">
+    <h1>Welcome, Admin</h1>
+    <p>Your role: <span class="badge bg-info text-dark">{{ user.role|capfirst }}</span></p>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card card-hover shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-cogs"></i> System Settings</h5>
+                <p class="card-text">Manage global settings, users, permissions.</p>
+                <a href="{% url 'admin:index' %}" class="btn btn-secondary">Go</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-hover shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-chart-pie"></i> Reports & Analytics</h5>
+                <p class="card-text">View usage status, education & health analytics, etc.</p>
+                <a href="{% url 'users:all_reports' %}" class="btn btn-secondary">Go</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-hover shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-users-cog"></i> Manage Users</h5>
+                <p class="card-text">View / edit user accounts (student, teacher, admin).</p>
+                <a href="{% url 'users:manage_users' %}" class="btn btn-secondary">Go</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

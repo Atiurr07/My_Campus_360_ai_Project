@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3 class="text-center mb-3">📘 Create / Upload Assignment</h3>
+
+    <form method="POST" enctype="multipart/form-data" class="card shadow p-4">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label fw-bold">Title</label>
+            {{ form.title }}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Description</label>
+            {{ form.description }}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Upload File</label>
+            {{ form.file }}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold" type="datetime">Deadline</label>
+            {{ form.deadline }}
+            <small class="text-muted">⏰ Please set deadline carefully. Editable only before it expires.</small>
+        </div>
+
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary px-4">Create Assignment</button>
+            <a href="{% url 'education:teacher_assignment_list' %}" class="btn btn-secondary px-4">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

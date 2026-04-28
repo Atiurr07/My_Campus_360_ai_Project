@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <div class="card shadow-lg border-0 rounded-4 text-center p-4">
+                <h3 class="mb-3">👋 Welcome!</h3>
+                <p class="text-muted">Select how you want to continue</p>
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="d-grid gap-3 mt-4">
+
+                        <!-- Student Card -->
+                        <button type="submit" name="role" value="student"
+                            class="btn btn-outline-primary py-3 rounded-3 fw-bold">
+                            🎓 Continue as Student
+                            <br>
+                            <small class="text-muted">Access learning dashboard instantly</small>
+                        </button>
+
+                        <!-- Teacher Card -->
+                        <button type="submit" name="role" value="teacher"
+                            class="btn btn-outline-warning py-3 rounded-3 fw-bold">
+                            👨‍🏫 Continue as Teacher
+                            <br>
+                            <small class="text-muted">Requires admin approval</small>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

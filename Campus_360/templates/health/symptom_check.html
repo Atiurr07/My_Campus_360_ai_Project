@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Symptom Checker</h3>
+<form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn btn-success">Check</button>
+</form>
+{% endblock %}

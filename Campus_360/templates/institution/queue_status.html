@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div id="token-status" hx-get="{% url 'institution:queue_status' token.id %}" hx-swap="outerHTML"
+    hx-trigger="load, every 10s">
+    {% include "institution/_token_status_block.html" %}
+</div>
+{% endblock %}

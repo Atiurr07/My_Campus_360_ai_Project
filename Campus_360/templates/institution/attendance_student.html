@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3>My Attendance</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Period</th>
+            <th>Course</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for r in records %}
+        <tr>
+            <td>{{ r.date }}</td>
+            <td>{{ r.period }}</td>
+            <td>{{ r.course.name }}</td>
+            <td>{{ r.status }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

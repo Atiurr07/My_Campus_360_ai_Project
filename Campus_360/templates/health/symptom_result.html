@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Symptom Result</h3>
+<p>Submitted: {{ s.created_at }}</p>
+<h5>Recommendations:</h5>
+<ul>
+    {% for r in s.result.recommendations %}
+    <li>{{ r }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

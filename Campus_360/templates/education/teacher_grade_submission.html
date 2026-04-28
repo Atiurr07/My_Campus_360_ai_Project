@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h3>Grading Submission</h3>
+    <div class="card mt-3 p-4 shadow-sm">
+        <h5>Student: {{ submission.student.username }}</h5>
+        <p><strong>Assignment:</strong> {{ submission.assignment.title }}</p>
+        <p><strong>Submitted On:</strong> {{ submission.submitted_at|date:"Y-m-d H:i" }}</p>
+        <p><strong>File:</strong> <a href="{{ submission.submitted_file.url }}" target="_blank">Download</a></p>
+
+        <form method="POST" class="mt-4">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="grade" class="form-label">Grade</label>
+                <input type="" class="form-control" name="grade" value="{{ submission.grade|default_if_none:'' }}"
+                    required>
+            </div>
+            <div class="mb-3">
+                <label for="feedback" class="form-label">Feedback</label>
+                <textarea class="form-control" name="feedback"
+                    rows="3">{{ submission.feedback|default_if_none:'' }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-success">Save</button>
+            <a href="{% url 'education:teacher_grade_submission' submission.assignment.id %}" class="btn btn-secondary">Back</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

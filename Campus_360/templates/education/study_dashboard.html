@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}AI Study Plan — Campus360{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'education/css/study_dashboard.css' %}">
+
+<div class="container-fluid mt-4 px-4 dashboard-container">
+    <h2 class="text-center mb-4 fw-bold text-primary">
+        📘 AI-Powered Personalized Study Plan
+    </h2>
+
+    <div class="dashboard-wrapper">
+
+        <!-- LEFT PANEL (60%) -->
+        <div class="left-panel">
+
+            <div class="ai-card text-center mb-4">
+                <h5>📤 Upload Syllabus / Past Performance</h5>
+                <a href="{% url 'education:upload_syllabus_view' %}" class="btn btn-ai mt-2">
+                    Upload Files
+                </a>
+            </div>
+
+            <div class="ai-card text-center mb-4">
+                <h5>🧠 Request AI Study Plan</h5>
+                <a href="{% url 'education:request_study_plan' %}" class="btn btn-success mt-2">
+                    Request Plan
+                </a>
+            </div>
+
+            {% if study_plan %}
+
+            <div class="ai-card mb-4">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <h6>Plan</h6>
+                        <h4>{{ plan_name }}</h4>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Days</h6>
+                        <h4>{{ total_days }}</h4>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Progress</h6>
+                        <h4>{{ progress }}%</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ai-card mb-4">
+                <h5>🗓️ Daily Plan</h5>
+
+                {% for day, data in study_plan.items %}
+                <div class="timeline-card">
+                    <strong>Day {{ day }}:</strong><br>
+                    <span>{{ data.topic }}</span><br>
+                    <small>{{ data.tasks }}</small>
+                </div>
+                {% empty %}
+                <p>No study items generated</p>
+                {% endfor %}
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="ai-card">
+                        <canvas id="progressChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="ai-card">
+                        <canvas id="difficultyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            {% else %}
+            <div class="text-center mt-5">
+                <p>No study plan yet</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- RIGHT PANEL (40%) -->
+        <div class="right-panel">
+            <div class="ai-chat-wrapper w-100">
+
+                <div class="ai-header">
+                    <span>🤖 AI Assistant</span>
+                    <button onclick="newChat()">+ New</button>
+                </div>
+
+                <div class="ai-history" id="chat-history"></div>
+
+                <div id="chat-box" class="ai-chat-box"></div>
+
+                <div id="chat-loader" class="ai-loader d-none">Just wait a moment...</div>
+
+                <div class="ai-upload">
+                    <input type="file" id="file-input">
+                </div>
+
+                <div class="ai-input">
+                    <input type="text" id="user-input" placeholder="Enter to ask anything...">
+                    <button onclick="sendMessage()">➤</button>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'education/js/study_dashboard.js' %}" ></script>
+
+
+{{ progress_chart_data|json_script:"progress-data" }}
+{{ difficulty_data|json_script:"difficulty-data" }}
+
+<script>
+const progressData = JSON.parse(document.getElementById("progress-data").textContent);
+const difficultyData = JSON.parse(document.getElementById("difficulty-data").textContent);
+
+window.chartData = {
+    progress: progressData,
+    difficulty: difficultyData
+};
+</script>
+
+{% endblock %}

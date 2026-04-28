@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="fas fa-chart-line"></i> Reports & Analytics</h2>
+
+    <!-- Filters -->
+    <form method="GET" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <input type="text" name="student" class="form-control" placeholder="Search by Student"
+                value="{{ filters.student }}">
+        </div>
+        <div class="col-md-3">
+            <input type="text" name="teacher" class="form-control" placeholder="Search by Teacher"
+                value="{{ filters.teacher }}">
+        </div>
+        <div class="col-md-3">
+            <input type="date" name="date" class="form-control" value="{{ filters.date }}">
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+    </form>
+
+    <!-- Quick Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-left-primary">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Records</h6>
+                    <h4>{{ total_records }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-left-success">
+                <div class="card-body">
+                    <h6 class="text-muted">Unique Students</h6>
+                    <h4>{{ unique_students }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-left-warning">
+                <div class="card-body">
+                    <h6 class="text-muted">Unique Teachers</h6>
+                    <h4>{{ unique_teachers }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-left-danger">
+                <div class="card-body">
+                    <h6 class="text-muted">Latest Date</h6>
+                    <h4>{% if latest_date %}{{ latest_date }}{% else %}-{% endif %}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-user-graduate"></i> Attendance per Student</h5>
+                    <canvas id="studentChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-chalkboard-teacher"></i> Attendance per Teacher</h5>
+                    <canvas id="teacherChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Raw Data Table -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-body">
+            <h5 class="card-title">Recent Attendance Records</h5>
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Student</th>
+                        <th>Teacher</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    <tr>
+                        <td>{{ report.date }}</td>
+                        <td>{{ report.student.username }}</td>
+                        <td>{{ report.teacher.username }}</td>
+                        <td>{{ report.status }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">No records found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Export Button -->
+    <div class="mb-3">
+        <div class="dropdown mb-4">
+            <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="fas fa-file-export"></i> Export Reports
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{% url 'users:export_attendance_csv' %}">
+                        <i class="fas fa-file-csv"></i> Export CSV
+                    </a></li>
+                <li><a class="dropdown-item" href="{% url 'users:export_attendance_excel' %}">
+                        <i class="fas fa-file-excel"></i> Export Excel
+                    </a></li>
+                <li><a class="dropdown-item" href="{% url 'users:export_attendance_pdf' %}">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row">
+        <!-- Trend Chart -->
+        <div class="col-md-12 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-chart-line"></i> Attendance Trends</h5>
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Students -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Top 5 Students</h5>
+                    <canvas id="topStudentChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Students -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Bottom 5 Students</h5>
+                    <canvas id="bottomStudentChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="alert alert-danger mt-4">
+        <h5>⚠ Students with Low Attendance</h5>
+        <ul>
+            {% for s in low_attendance_students %}
+            <li>{{ s.student__username }} ({{ s.count }})</li>
+            {% empty %}
+            <li>All students are doing fine 🎉</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+</div>
+
+<script>
+    // Student Attendance Chart
+    const studentCtx = document.getElementById('studentChart').getContext('2d');
+    new Chart(studentCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ student_labels| safe }},
+        datasets: [{
+            label: 'Attendance Count',
+            data: {{ student_counts| safe }},
+        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    // Teacher Attendance Chart
+    const teacherCtx = document.getElementById('teacherChart').getContext('2d');
+    new Chart(teacherCtx, {
+        type: 'pie',
+        data: {
+            labels: {{ teacher_labels| safe }},
+        datasets: [{
+            data: {{ teacher_counts| safe }},
+        backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1']
+            }]
+        },
+        options: { responsive: true }
+    });
+
+
+    // Attendance Trends
+    new Chart(document.getElementById('trendChart').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: {{ trend_labels| safe }},
+        datasets: [{
+            label: 'Attendance Over Time',
+            data: {{ trend_counts| safe }},
+        fill: false,
+        borderColor: 'blue',
+        tension: 0.1
+            }]
+        }
+    });
+
+    // Top Students
+    new Chart(document.getElementById('topStudentChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: {{ top_student_labels| safe }},
+        datasets: [{
+            label: 'Attendance',
+            data: {{ top_student_counts| safe }},
+        backgroundColor: 'green'
+            }]
+        }
+    });
+
+    // Bottom Students
+    new Chart(document.getElementById('bottomStudentChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: {{ bottom_student_labels| safe }},
+        datasets: [{
+            label: 'Attendance',
+            data: {{ bottom_student_counts| safe }},
+        backgroundColor: 'red'
+            }]
+        }
+    });
+</script>
+
+{% endblock %}

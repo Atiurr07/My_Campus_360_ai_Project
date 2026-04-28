@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .upload-container {
+        max-width: 800px;
+        margin: 40px auto;
+        background: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .progress {
+        height: 25px;
+        background: #e9ecef;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 15px;
+    }
+
+    .progress-bar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #007bff, #00b4d8);
+        transition: width 0.4s ease;
+    }
+
+    .message-box {
+        margin-top: 15px;
+        font-weight: 500;
+        color: #444;
+    }
+
+    .btn-primary {
+        background: #007bff;
+        border: none;
+        border-radius: 6px;
+        padding: 10px 16px;
+    }
+</style>
+
+<div class="upload-container">
+    <h2 class="text-center mb-4">📄 Upload Resume for ATS Analysis</h2>
+
+    <form id="resume-upload-form" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group mb-3">
+            <label for="id_uploaded_file">Resume File</label>
+            {{ form.uploaded_file }}
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="target_role">Target Role</label>
+            <input type="text" class="form-control" name="target_role" placeholder="e.g., Data Scientist">
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="job_description">Job Description</label>
+            <textarea name="job_description" class="form-control" rows="5"
+                placeholder="Paste the JD here..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Start Analysis</button>
+    </form>
+
+    <div class="progress mt-4">
+        <div id="progress-bar" class="progress-bar"></div>
+    </div>
+    <div id="progress-text" class="text-center mt-2">Waiting...</div>
+    <div id="message-box" class="message-box"></div>
+
+    <!-- Inline Results Section -->
+    <div id="result-container" class="mt-5"></div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.querySelector("#resume-upload-form");
+        const progressBar = document.querySelector("#progress-bar");
+        const progressText = document.querySelector("#progress-text");
+        const messageBox = document.querySelector("#message-box");
+        const resultContainer = document.querySelector("#result-container");
+        let pollingInterval = null;
+
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+            const formData = new FormData(form);
+            progressBar.style.width = "0%";
+            progressText.textContent = "Starting...";
+            messageBox.textContent = "";
+            resultContainer.innerHTML = "";
+
+            fetch("{% url 'education:start_analysis_ajax' %}", {
+                method: "POST",
+                headers: { "X-CSRFToken": formData.get("csrfmiddlewaretoken") },
+                body: formData,
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.ok) throw new Error("Upload failed");
+                    const taskId = data.task_id;
+                    const resumePk = data.resume_pk;
+                    pollTaskStatus(taskId, resumePk);
+                })
+                .catch(err => {
+                    messageBox.textContent = "Error: " + err.message;
+                });
+        });
+
+        function pollTaskStatus(taskId, resumePk) {
+            pollingInterval = setInterval(() => {
+                fetch(`/education/resume/analysis_status/${taskId}/`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.ok) return;
+                        const task = data.task;
+                        const progress = task.progress || 0;
+                        progressBar.style.width = `${progress}%`;
+                        progressText.textContent = `${progress}%`;
+                        messageBox.textContent = task.message || "";
+
+                        if (task.status === "done" || task.status === "SUCCESS") {
+                            clearInterval(pollingInterval);
+                            progressBar.style.width = "100%";
+                            progressText.textContent = "100% ✅";
+                            messageBox.textContent = "Analysis complete! Loading results...";
+
+                            // ✅ Inline report display (no reload)
+                            fetch(`/education/resume/${resumePk}`)
+                                .then(res => res.text())
+                                .then(html => {
+                                    const parser = new DOMParser();
+                                    const doc = parser.parseFromString(html, "text/html");
+                                    const resultSection = doc.querySelector(".resume-report") || doc.body;
+                                    resultContainer.innerHTML = resultSection.innerHTML;
+
+                                    // Smooth scroll to results
+                                    resultContainer.scrollIntoView({ behavior: "smooth" });
+                                });
+                        }
+                    })
+                    .catch(err => console.error("Polling error:", err));
+            }, 3000);
+        }
+    });
+</script>
+{% endblock %}

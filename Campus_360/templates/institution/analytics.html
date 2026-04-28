@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* 🌈 Professional, Eye-Catching Dashboard Styling */
+    .analytics-container {
+        padding: 40px 0;
+        background: linear-gradient(180deg, #f8f9fa, #e9eff5);
+        min-height: 100vh;
+    }
+
+    .analytics-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .analytics-header h2 {
+        font-weight: 800;
+        font-size: 2rem;
+        color: #0d6efd;
+    }
+
+    .download-buttons {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .download-buttons a {
+        display: inline-block;
+        margin: 5px 10px;
+        padding: 10px 20px;
+        border-radius: 30px;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .download-buttons a.csv {
+        background-color: #198754;
+    }
+
+    .download-buttons a.csv:hover {
+        background-color: #157347;
+        transform: translateY(-2px);
+    }
+
+    .download-buttons a.pdf {
+        background-color: #dc3545;
+    }
+
+    .download-buttons a.pdf:hover {
+        background-color: #bb2d3b;
+        transform: translateY(-2px);
+    }
+
+    .metric-card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+        padding: 25px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 18px rgba(0, 0, 0, 0.15);
+    }
+
+    .metric-value {
+        font-size: 2.4rem;
+        font-weight: 700;
+        color: #0d6efd;
+    }
+
+    .metric-label {
+        font-size: 1rem;
+        color: #6c757d;
+    }
+
+    .chart-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+        padding: 25px;
+    }
+</style>
+
+<div class="analytics-container container">
+    <div class="analytics-header">
+        <h2>📊 Queue & Token Analytics Dashboard</h2>
+        <div class="download-buttons">
+            <a href="{% url 'institution:export_analytics_csv' %}" class="csv">⬇️ Download CSV</a>
+            <a href="{% url 'institution:export_analytics_pdf' %}" class="pdf">📄 Download PDF</a>
+        </div>
+    </div>
+
+    <!-- Summary Metrics -->
+    <div class="row text-center mb-5">
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value" id="totalTokens">--</div>
+                <div class="metric-label">Total Tokens</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value" id="servedTokens">--</div>
+                <div class="metric-label">Served</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value" id="cancelledTokens">--</div>
+                <div class="metric-label">Cancelled</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value" id="avgWait">--</div>
+                <div class="metric-label">Avg Wait Time (min)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="chart-card mb-4">
+                <h5 class="text-primary text-center mb-3">⏱ Peak Hours</h5>
+                <canvas id="peakHourChart" height="180"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="chart-card mb-4">
+                <h5 class="text-success text-center mb-3">📊 Service Performance</h5>
+                <canvas id="servicePerformanceChart" height="180"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+    let chartData = JSON.parse('{{ chart_data_json|safe }}');
+    let peakChart, perfChart;
+
+    // 🧭 Render metrics summary
+    function renderSummary() {
+        const totalTokens = chartData.summary.total_tokens || 0;
+        const served = chartData.summary.served || 0;
+        const cancelled = chartData.summary.cancelled || 0;
+        const avgWait =
+            (chartData.service_perf.reduce((a, b) => a + b.avg_minutes, 0) /
+                (chartData.service_perf.length || 1)).toFixed(1);
+
+        document.getElementById("totalTokens").textContent = totalTokens;
+        document.getElementById("servedTokens").textContent = served;
+        document.getElementById("cancelledTokens").textContent = cancelled;
+        document.getElementById("avgWait").textContent = avgWait;
+    }
+
+    // 📈 Draw charts
+    function drawCharts() {
+        const ctx1 = document.getElementById('peakHourChart').getContext('2d');
+        const ctx2 = document.getElementById('servicePerformanceChart').getContext('2d');
+
+        peakChart = new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: chartData.peak_hours.map(x => x.hour + ":00"),
+                datasets: [{
+                    label: 'Tokens Served',
+                    data: chartData.peak_hours.map(x => x.total),
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13,110,253,0.15)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        });
+
+        perfChart = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: chartData.service_perf.map(x => x.service),
+                datasets: [{
+                    label: 'Avg Duration (min)',
+                    data: chartData.service_perf.map(x => x.avg_minutes),
+                    backgroundColor: ['#198754', '#17a2b8', '#ffc107', '#fd7e14', '#6f42c1']
+                }]
+            },
+            options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        });
+    }
+
+    // ♻️ Refresh data without reload
+    async function refreshData() {
+        try {
+            const res = await fetch(window.location.pathname + '?refresh=true');
+            const newData = await res.json();
+            chartData = newData;
+
+            renderSummary();
+
+            peakChart.data.labels = newData.peak_hours.map(x => x.hour + ":00");
+            peakChart.data.datasets[0].data = newData.peak_hours.map(x => x.total);
+            perfChart.data.labels = newData.service_perf.map(x => x.service);
+            perfChart.data.datasets[0].data = newData.service_perf.map(x => x.avg_minutes);
+
+            peakChart.update();
+            perfChart.update();
+        } catch (err) {
+            console.error("Refresh failed:", err);
+        }
+    }
+
+    // Initialize charts + auto-refresh
+    renderSummary();
+    drawCharts();
+    setInterval(refreshData, 30000);
+</script>
+{% endblock %}

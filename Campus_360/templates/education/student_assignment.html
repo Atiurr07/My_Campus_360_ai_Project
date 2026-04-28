@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-4">
+    <h3 class="text-center mb-3">📝 My Assignments</h3>
+
+    {% if assignments %}
+    <table class="table table-bordered table-striped">
+        <thead class="table-light">
+            <tr>
+                <th>Title</th>
+                <th>Teacher</th>
+                <th>Deadline</th>
+                <th>Status</th>
+                <th>Grade</th>
+                <th>Feedback</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in assignments %}
+            <tr>
+                <!-- This is for Assignment Information -->
+                <td>{{ a.assignments.title }}</td>
+                <td>{{ a.assignments.teacher.username }}</td>
+                <td>
+                    {% if a.assignments.deadline  %}
+                        {{ a.assignments.deadline|date:"M d, Y H:i" }}
+                    {% else %}
+                        <span class="text-muted">No deadline</span>
+                    {% endif %}
+                </td>
+
+                <!-- submission Status -->
+                <td>
+                    {% if a.status == "Graded" %}
+                        <span class="badge bg-info text-dark">Graded</span>
+                    {% elif a.assignments.deadline and a.assignments.deadline < now %}
+                        <span class="badge bg-danger">Overdue</span>
+                    {% elif a.assignments.deadline and a.assignments.deadline|timeuntil < "1 day" %}
+                        <span class="badge bg-warning text-dark">Due Soon</span>
+                    {% elif a.submitted %}
+                        <span class="badge bg-success">Submitted</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Pending</span>
+                    {% endif %}
+                </td>
+
+                <!-- Grade Column -->
+                <td>
+                    {% if a.submission and a.submission.grade %}
+                        {{ a.submission.grade }}
+                    {% else %}
+                        <span class="text-muted">--</span>
+                    {% endif %}
+                </td>
+
+                <!-- Feedback column -->
+                <td>
+                        {% if a.submission.feedback %}
+                            <br><small class="text-muted">{{ a.submission.feedback }}</small>
+                        {% else %}
+                        <span class="text-muted">--</span>
+                        {% endif %}
+                </td>
+
+
+                <!-- Action Buttons -->
+                <td>
+                    {%  if a.status == "Completed" or a.status == "Graded" %}
+                        <span class="badge bg-success">Completed</span>
+                    {% elif a.submitted %}
+                    <a href="{% url 'education:student_submit_assignment' a.assignments.id %}"
+                        class="btn btn-sm btn-outline-secondary">Re-submit</a>
+                    {% else %}
+                    <a href="{% url 'education:student_submit_assignment' a.assignments.id %}"
+                        class="btn btn-sm btn-outline-primary">Submit</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-info text-center">
+        No assignments available yet. Please check back later.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

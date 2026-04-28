@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Manage Users</h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Roles</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>{{ u.id }}</td>
+                <td>{{ u.username }}</td>
+                <td>{{ u.email }}</td>
+                <td>
+                    {% if u.is_student %} Student {% endif %}
+                    {% if u.is_teacher %} Teacher {% endif %}
+                    {% if u.is_admin %} Admin {% endif %}
+                    {% if u.is_superuser %} SuperAdmin {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'users:view_user' u.id %}" class="btn btn-sm btn-primary">View</a>
+                    <a href="{% url 'users:edit_user' u.id %}" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{% url 'users:delete_user' u.id %}" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

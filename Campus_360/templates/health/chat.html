@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Mental Health Chat</h3>
+<form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn btn-primary">Send</button>
+</form>
+
+{% if resp %}
+<hr>
+<h5>Bot response:</h5>
+<p>{{ resp }}</p>
+{% endif %}
+
+{% if log %}
+<div class="mt-3">
+    <h6>Last conversation</h6>
+    <p><strong>You:</strong> {{ log.user_message }}</p>
+    <p><strong>Bot:</strong> {{ log.bot_response }}</p>
+</div>
+{% endif %}
+{% endblock %}

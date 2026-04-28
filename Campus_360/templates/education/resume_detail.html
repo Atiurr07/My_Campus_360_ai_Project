@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .resume-detail-container {
+        max-width: 900px;
+        margin: 40px auto;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+    }
+
+    .score-card {
+        display: flex;
+        justify-content: space-around;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .score-item {
+        background: linear-gradient(135deg, #007bff, #00b4d8);
+        color: white;
+        border-radius: 12px;
+        padding: 20px;
+        width: 28%;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        font-weight: bold;
+    }
+
+    .score-item h4 {
+        font-size: 1.3rem;
+        margin-bottom: 10px;
+    }
+
+    .section {
+        margin-bottom: 25px;
+    }
+
+    .section h5 {
+        border-bottom: 2px solid #007bff;
+        display: inline-block;
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+    }
+
+    .keyword-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .keyword {
+        background: #f1f3f4;
+        border-radius: 20px;
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+
+    .keyword.missing {
+        background: #ffe5e5;
+        color: #a40000;
+    }
+
+    .download-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 25px;
+    }
+
+    .btn-download {
+        background: #007bff;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 8px;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-download:hover {
+        background: #0056b3;
+    }
+</style>
+
+<div class="resume-detail-container">
+    <h2 class="text-center mb-4">📊 Resume Analysis Report</h2>
+
+    {% if resume.feedback %}
+    {% with fb=resume.feedback %}
+    <div class="score-card">
+        <div class="score-item">
+            <h4>ATS Score</h4>
+            <p>{{ fb.ats_score|default:"0" }}%</p>
+        </div>
+        <div class="score-item">
+            <h4>Keyword Match</h4>
+            <p>{{ fb.keyword_match_percent|default:"0" }}%</p>
+        </div>
+        <div class="score-item">
+            <h4>Final Score</h4>
+            <p>{{ fb.final_score|default:"0" }}%</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h5>✅ Matched Keywords</h5>
+        <div class="keyword-list">
+            {% for kw in fb.matched_keywords %}
+            <span class="keyword">{{ kw }}</span>
+            {% empty %}
+            <p>No matched keywords found.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="section">
+        <h5>🚫 Missing Keywords</h5>
+        <div class="keyword-list">
+            {% for kw in fb.missing_keywords %}
+            <span class="keyword missing">{{ kw }}</span>
+            {% empty %}
+            <p>None 🎉</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="section">
+        <h5>🧠 ATS Issues</h5>
+        <ul>
+            {% for issue in fb.ats_issues %}
+            <li>{{ issue }}</li>
+            {% empty %}
+            <li>No ATS issues detected!</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="section">
+        <h5>💡 AI Suggestions</h5>
+        <ul>
+            {% for sug in fb.suggestions %}
+            <li>{{ sug }}</li>
+            {% empty %}
+            <li>No suggestions available.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="section">
+        <h5>📝 Optimized Resume Text</h5>
+        <pre
+            style="background:#f8f9fa;padding:20px;border-radius:8px;">{{ fb.optimized_resume_text|linebreaksbr }}</pre>
+    </div>
+
+    <div class="download-buttons">
+        <form action="{% url 'education:generate_optimized_resume' resume.pk %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="format" value="txt">
+            <button class="btn-download" type="submit">⬇ TXT</button>
+        </form>
+        <form action="{% url 'education:generate_optimized_resume' resume.pk %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="format" value="pdf">
+            <button class="btn-download" type="submit">⬇ PDF</button>
+        </form>
+        <form action="{% url 'education:generate_optimized_resume' resume.pk %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="format" value="docx">
+            <button class="btn-download" type="submit">⬇ DOCX</button>
+        </form>
+    </div>
+    {% endwith %}
+    {% else %}
+    <p>No feedback available for this resume yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Text Sentiment Analyzer</h3>
+<form method="POST">{% csrf_token %}
+    <div class="mb-3">
+        <textarea class="form-control" name="text" rows="4"></textarea>
+    </div>
+    <button class="btn btn-primary">Analyze</button>
+</form>
+
+{% if result %}
+<hr>
+<p><strong>Detected sentiment:</strong> {{ result }}</p>
+{% endif %}
+{% endblock %}

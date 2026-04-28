@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'education/css/request_study_plan.css' %}">
+<script src="{% static 'education/js/request_study_plan.js' %}"></script>
+
+<div class="request-container">
+    <div class="request-card">
+        <h2>🎯 Request Your Study Plan</h2>
+        <p class="subtitle">Tell us about your goals and time availability. AI will generate your personalized study
+            plan!</p>
+
+        <form method="POST" action="{% url 'education:request_study_plan' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-fields">
+                {{ form.as_p }}
+            </div>
+
+            <button type="submit" class="btn-generate">Generate Study Plan</button>
+        </form>
+
+        <div class="info-box">
+            <p>💡 After submission, your plan will be generated automatically. You’ll be redirected to your Study
+                Dashboard once ready.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,2 @@
+web: gunicorn Campus_360.wsgi:application --bind 0.0.0.0:$PORT
+worker: celery -A Campus_360 worker -l info

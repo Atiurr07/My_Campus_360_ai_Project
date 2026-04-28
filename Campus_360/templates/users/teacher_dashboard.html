@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Teacher Dashboard{% endblock %}
+{% block content %}
+<div class="text-center mb-4">
+    <h1>Welcome, {{ user.first_name|default:user.username }}</h1>
+    <p>Your role: <span class="badge bg-info text-dark">{{ user.role|capfirst }}</span></p>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card card-hover shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-pen-fancy"></i> Create / View Assignments</h5>
+                <p class="card-text">Upload assignments, review student submissions & plagiarism reports.</p>
+                <a href="{% url 'education:assignment_upload' %}" class="btn btn-primary">Go</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+
+        <h2 class="mb-4">👨‍🏫 Teacher Dashboard</h2>
+
+        <!-- ========== Assignments Section ========== -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">📘 Your Latest Assignments</h5>
+            </div>
+            <div class="card-body">
+                {% if assignments %}
+                <ul class="list-group list-group-flush">
+                    {% for a in assignments %}
+                    <li class="list-group-item">
+                        <strong>{{ a.title }}</strong> — {{ a.description|truncatewords:15 }}
+                        <span class="badge bg-secondary float-end">
+                            {{ a.submissions.count }} submissions
+                        </span>
+                        <br>
+                        <small>Uploaded on: {{ a.created_at|date:"Y-m-d" }}</small>
+                        <div class="btn-group float-end mt-1">
+                            <a href="{% url 'education:teacher_assignment_submission' a.id %}"
+                                class="btn btn-sm btn-outline-primary">View Submissions</a>
+
+                            <a href="{% url 'education:teacher_edit_assignment' a.id %}"
+                                class="btn btn-sm btn-outline-warning m-2">✏️ Edit</a>
+
+                            <form action="{% url 'education:teacher_delete_assignment' a.id %}" method="post"
+                                style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger mt-2"
+                                    onclick="return confirm('Are you sure you want to delete this assignment?');">
+                                    🗑️ Delete
+                                </button>
+                            </form>
+                        </div>
+
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted">No assignments uploaded yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ========== Student Submissions Section ========== -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">📩 Recent Student Submissions</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_submissions %}
+                <ul class="list-group list-group-flush">
+                    {% for sub in recent_submissions %}
+                    <li class="list-group-item">
+                        <strong>{{ sub.student.get_full_name|default:sub.student.username }}</strong>
+                        submitted
+                        <em>{{ sub.assignment.title }}</em>
+                        on {{ sub.submitted_at|date:"Y-m-d H:i" }}
+                        <a href="{% url 'education:teacher_assignment_submission' sub.assignment.id %}"
+                            class="btn btn-sm btn-outline-success float-end">View</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted">No new submissions yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card card-hover shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-users"></i> Attendance Management</h5>
+                <p class="card-text">Mark attendance, view student presence/absence trends.</p>
+                <a href="{% url 'institution:attendance_teacher' %}" class="btn btn-primary">Go</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card card-hover shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-users"></i> Enroll Students</h5>
+                <p class="card-text">Enroll students in your courses.</p>
+                <a href="{% url 'institution:enroll_students' %}" class="btn btn-primary">Go</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card card-hover shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-user-clock"></i> Queue & Tokens</h5>
+                <p class="card-text">Manage student queue requests for services.</p>
+                <a href="{% url 'institution:queue_admin' %}" class="btn btn-primary">Go</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-hover shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-chart-pie"></i> Queue Analytics</h5>
+                <p class="card-text">View average waiting times and service efficiency.</p>
+                <a href="{% url 'institution:analytics_view' %}" class="btn btn-primary">View</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="row g-4 mt-3">
+    <div class="col-md-4">
+        <div class="card card-hover shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-lightbulb"></i> Meeting Summaries</h5>
+                <p class="card-text">Upload meeting transcripts and view key points.</p>
+                <a href="{% url 'productivity:meeting_upload' %}" class="btn btn-warning">Go</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card card-hover shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-book-open"></i> Review Study Plans & Reports</h5>
+                <p class="card-text">View student study plans & analytics to guide them.</p>
+                <a href="{% url 'education:study_dashboard' %}" class="btn btn-warning">Go</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

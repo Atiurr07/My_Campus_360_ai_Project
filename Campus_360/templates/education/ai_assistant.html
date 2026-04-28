@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="chat-container">
+    <h2>Campus AI Assistant 🤖</h2>
+
+    <div id="chat-box"></div>
+
+    <div class="input-box">
+        <input type="text" id="user-input" placeholder="Ask anything...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<style>
+.chat-container {
+    width: 60%;
+    margin: auto;
+}
+
+#chat-box {
+    height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.user-msg {
+    text-align: right;
+    margin: 5px;
+    color: blue;
+}
+
+.bot-msg {
+    text-align: left;
+    margin: 5px;
+    color: green;
+}
+
+.input-box {
+    display: flex;
+}
+input {
+    flex: 1;
+    padding: 10px;
+}
+button {
+    padding: 10px;
+}
+</style>
+
+<script>
+function addMessage(text, cls) {
+    let chatBox = document.getElementById("chat-box");
+    let div = document.createElement("div");
+    div.className = cls;
+    div.innerText = text;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function sendMessage() {
+    let input = document.getElementById("user-input");
+    let message = input.value;
+
+    if (!message) return;
+
+    addMessage(message, "user-msg");
+    input.value = "";
+
+    fetch("/education/api/ai-assistant/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({ query: message })
+    })
+    .then(res => res.json())
+    .then(data => {
+        let reply =
+            data.response ||
+            data.answer?.explanation ||
+            data.message ||
+            "No response";
+
+        addMessage(reply, "bot-msg");
+    })
+    .catch(err => {
+        addMessage("Error connecting AI", "bot-msg");
+    });
+}
+</script>
+
+{% endblock %}

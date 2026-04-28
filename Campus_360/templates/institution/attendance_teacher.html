@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="container mt-4">
+    <h3>Mark Attendance</h3>
+    <form method="POST">
+        {% csrf_token %}
+
+        <!-- Select Course -->
+        <div class="form-group mb-3">
+            <label for="course">Select Course</label>
+            <select name="course" id="course" class="form-control" required>
+                <option value="">-- Select Course --</option>
+                {% for course in courses %}
+                <option value="{{ course.id }}">{{ course.code }} - {{ course.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Date -->
+        <div class="form-group mb-3">
+            <label for="date">Date</label>
+            <input type="date" name="date" id="date" class="form-control" required>
+        </div>
+
+        <!-- Period -->
+        <div class="form-group mb-3">
+            <label for="period">Period</label>
+            <input type="number" name="period" id="period" class="form-control" required min="1" max="10">
+        </div>
+
+        <!-- Students will render dynamically with JS -->
+        <div id="students-container" class="mt-4"></div>
+
+        <button type="submit" class="btn btn-primary">Save Attendance</button>
+    </form>
+</div>
+
+<script>
+    // Simple script to auto-load students when course is selected
+    document.getElementById("course").addEventListener("change", function () {
+        const courseId = this.value;
+        const container = document.getElementById("students-container");
+        container.innerHTML = "";
+
+        if (!courseId) return;
+
+        // Example: fetch students via AJAX (needs backend API view)
+        fetch(`/institution/api/course/${courseId}/students/`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.students.length === 0) {
+                    container.innerHTML = "<p>No students enrolled in this course.</p>";
+                } else {
+                    let html = `<h5>Students</h5><table class="table table-bordered"><tr><th>Name</th><th>Status</th></tr>`;
+                    data.students.forEach(st => {
+                        html +=
+            `<tr>
+                <td>${st.username}</td>
+                <td>
+                <select name="status_${st.id}" class="form-control" required>
+                    <option value="">-- Select --</option>
+                    <option value="present">Present</option>
+                    <option value="absent">Absent</option>
+                </select>
+                </td>
+            </tr>`;
+                    });
+                    html += `</table>`;
+                    container.innerHTML = html;
+                }
+            });
+    });
+</script>
+
+
+<hr>
+<h5>Your Recent Records</h5>
+<ul>
+    {% for r in records %}
+    <li>{{ r.date }} | Period {{ r.period }} | {{ r.course.name }} | {{ r.student.username }} - {{ r.status }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,30 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<h3>Queue Admin</h3>
+{% for service, tokens in service_queues %}
+<div class="card mb-3 p-3">
+    <div class="d-flex justify-content-between">
+        <h5>{{ service.name }}</h5>
+        <form method="POST" action="{% url 'institution:serve_next' service.id %}">
+            {% csrf_token %}
+                <button class="btn btn-primary btn-sm">Serve Next</button>
+        </form>
+    </div>
+    <ul>
+        {% for t in tokens %}
+        <li>
+            #{{ t.token_number }} - {{ t.user.get_full_name }} - {{ t.status }}
+            <form method="POST" action="{% url 'institution:mark_served' t.id %}" style="display:inline">
+                {% csrf_token %}
+                    <button class="btn btn-success mt-2 btn-sm">Mark Served</button>
+            </form>
+        </li>
+        {% empty %}
+        <li>No tokens</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endfor %}
+{% endblock %}

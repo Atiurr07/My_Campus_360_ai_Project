@@ -1,0 +1,19 @@
+<div class="card p-4">
+    <h4>Your Token: <span class="badge bg-primary">#{{ token.token_number }}</span></h4>
+    <p>Service: <strong>{{ token.service.name }}</strong></p>
+    <p>Status:
+        {% if token.status == "waiting" %}
+        <span class="badge bg-warning">Waiting ({{ waiting }} ahead)</span>
+        {% elif token.status == "active" %}
+        <span class="badge bg-info">Being served</span>
+        {% else %}
+        <span class="badge bg-success">Served</span>
+        {% endif %}
+    </p>
+    <p>QR for check-in (scan at counter):</p>
+    <img src="{% url 'institution:qr_image' token.qr_uuid %}" alt="QR" style="max-width:160px">
+    <form method="post" action="{% url 'institution:cancel_token' token.id %}">
+        {% csrf_token %}
+        <button class="btn btn-danger btn-sm mt-2">Cancel Token</button>
+    </form>
+</div>
