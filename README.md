@@ -42,8 +42,8 @@ Campus 360 is a full-stack Django-based web application with:
 
 ### 1. Clone repo
 
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
-cd YOUR_REPO
+git clone https://github.com/Atiurr07/My_Campus_360_ai_Project.git
+cd https://github.com/Atiurr07/My_Campus_360_ai_Project
 
 ### 2. Create virtual environment
 
